@@ -193,7 +193,6 @@ class PersonTest extends \PHPUnit\Framework\TestCase implements
   }
 
   public function testTrySaveSuccess() {
-    $system = self::$system;
     $draftPerson = $this->makeUnsavedPersonWithFirstLastEmailPhone();
     $result = $draftPerson->trySave();
     $this->createdPeople[] = $savedPerson = $result->getReturnedObject();
@@ -206,6 +205,30 @@ class PersonTest extends \PHPUnit\Framework\TestCase implements
       $savedPerson->emailAddress->get());
     self::assertEquals($draftPerson->phoneNumber->get(),
       $savedPerson->phoneNumber->get());
+  }
+
+  public function testTrySaveExistingPerson() {
+    $draftPerson1 = $this->makeUnsavedPersonWithFirstLastEmailPhone();
+    $result1 = $draftPerson1->trySave();
+    $this->createdPeople[] = $savedPerson1 = $result1->getReturnedObject();
+
+    self::assertEquals(\Civi\Osdi\ActionNetwork\Object\Person::class,
+      get_class($savedPerson1));
+    self::assertEquals(\Civi\Osdi\Result\Save::SUCCESS, $result1->getStatusCode());
+
+    $draftPerson2 = $this->makeUnsavedPersonWithFirstLastEmailPhone();
+    $draftPerson2->setId($savedPerson1->getId());
+    $emailUpper = strtoupper($draftPerson2->emailAddress->get());
+    $draftPerson2->emailAddress->set($emailUpper);
+
+    self::assertNotEquals($draftPerson2->emailAddress->get(), $savedPerson1->emailAddress->get());
+
+    $result2 = $draftPerson2->trySave();
+    $this->createdPeople[] = $savedPerson2 = $result2->getReturnedObject();
+
+    self::assertEquals(\Civi\Osdi\Result\Save::SUCCESS, $result2->getStatusCode());
+    self::assertEquals($savedPerson1->getId(), $savedPerson2->getId());
+    self::assertEquals($emailUpper, strtoupper($savedPerson2->emailAddress->get()));
   }
 
   public function testTrySaveUnableToChangeEmail() {

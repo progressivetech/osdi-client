@@ -122,8 +122,8 @@ class Person extends AbstractRemoteObject implements \Civi\Osdi\RemoteObjectInte
       return [NULL, NULL, NULL];
     }
 
-    if ($this->emailAddress->get() !==
-      $peopleWithTheEmail->rawFirst()->emailAddress->get()) {
+    if (strtolower($this->emailAddress->get()) !==
+      strtolower($peopleWithTheEmail->rawFirst()->emailAddress->get())) {
       throw new \Exception('Unexpected response from Action Network');
     }
 
